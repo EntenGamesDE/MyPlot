@@ -16,16 +16,14 @@ class Plot
 	public $name = "";
 	/** @var string $owner */
 	public $owner = "";
-	/** @var string[] $helpers */
+	/** @var array $helpers */
 	public $helpers = [];
-	/** @var string[] $denied */
+	/** @var array $denied */
 	public $denied = [];
 	/** @var string $biome */
 	public $biome = "PLAINS";
 	/** @var bool $pvp */
 	public $pvp = true;
-	/** @var float $price */
-	public $price = 0.0;
 	/** @var int $id */
 	public $id = -1;
 
@@ -37,14 +35,13 @@ class Plot
 	 * @param int $Z
 	 * @param string $name
 	 * @param string $owner
-	 * @param string[] $helpers
-	 * @param string[] $denied
+	 * @param array $helpers
+	 * @param array $denied
 	 * @param string $biome
 	 * @param bool|null $pvp
-	 * @param float $price
 	 * @param int $id
 	 */
-	public function __construct(string $levelName, int $X, int $Z, string $name = "", string $owner = "", array $helpers = [], array $denied = [], string $biome = "PLAINS", ?bool $pvp = null, float $price = -1, int $id = -1) {
+	public function __construct(string $levelName, int $X, int $Z, string $name = "", string $owner = "", array $helpers = [], array $denied = [], string $biome = "PLAINS", ?bool $pvp = null, int $id = -1) {
 		$this->levelName = $levelName;
 		$this->X = $X;
 		$this->Z = $Z;
@@ -54,15 +51,11 @@ class Plot
 		$this->denied = $denied;
 		$this->biome = strtoupper($biome);
 		$settings = MyPlot::getInstance()->getLevelSettings($levelName);
-		if(!isset($pvp)) {
+		if(!isset($pvp) and $settings !== null) {
 			$this->pvp = !$settings->restrictPVP;
 		}else{
 			$this->pvp = $pvp;
 		}
-		if(MyPlot::getInstance()->getConfig()->get('UseEconomy', false) === true)
-			$this->price = $price < 0 ? $settings->claimPrice : $price;
-		else
-			$this->price = 0;
 		$this->id = $id;
 	}
 
@@ -74,7 +67,7 @@ class Plot
 	 * @return bool
 	 */
 	public function isHelper(string $username) : bool {
-		return in_array($username, $this->helpers, true);
+		return in_array($username, $this->helpers);
 	}
 
 	/**
@@ -104,7 +97,7 @@ class Plot
 		if(!$this->isHelper($username)) {
 			return false;
 		}
-		$key = array_search($username, $this->helpers, true);
+		$key = array_search($username, $this->helpers);
 		if($key === false) {
 			return false;
 		}
@@ -120,7 +113,7 @@ class Plot
 	 * @return bool
 	 */
 	public function isDenied(string $username) : bool {
-		return in_array($username, $this->denied, true);
+		return in_array($username, $this->denied);
 	}
 
 	/**
@@ -150,7 +143,7 @@ class Plot
 		if(!$this->isDenied($username)) {
 			return false;
 		}
-		$key = array_search($username, $this->denied, true);
+		$key = array_search($username, $this->denied);
 		if($key === false) {
 			return false;
 		}
@@ -162,28 +155,14 @@ class Plot
 	 * @api
 	 *
 	 * @param Plot $plot
-	 * @param bool $checkMerge
 	 *
 	 * @return bool
 	 */
-	public function isSame(Plot $plot, bool $checkMerge =  true) : bool {
-		if($checkMerge)
-			$plot = MyPlot::getInstance()->getProvider()->getMergeOrigin($plot);
+	public function isSame(Plot $plot) : bool {
 		return $this->X === $plot->X and $this->Z === $plot->Z and $this->levelName === $plot->levelName;
 	}
 
 	/**
-	 * @api
-	 *
-	 * @return bool
-	 */
-	public function isMerged() : bool {
-		return count(MyPlot::getInstance()->getProvider()->getMergedPlots($this, true)) > 1; // only calculate the adjacent to save resources
-	}
-
-	/**
-	 * @api
-	 *
 	 * @param int $side
 	 * @param int $step
 	 *
@@ -191,7 +170,7 @@ class Plot
 	 */
 	public function getSide(int $side, int $step = 1) : Plot {
 		$levelSettings = MyPlot::getInstance()->getLevelSettings($this->levelName);
-		$pos = MyPlot::getInstance()->getPlotPosition($this, false);
+		$pos = MyPlot::getInstance()->getPlotPosition($this);
 		$sidePos = $pos->getSide($side, $step * ($levelSettings->plotSize + $levelSettings->roadWidth));
 		$sidePlot = MyPlot::getInstance()->getPlotByPosition($sidePos);
 		if($sidePlot === null) {
@@ -215,6 +194,9 @@ class Plot
 		return $sidePlot;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function __toString() : string {
 		return "(" . $this->X . ";" . $this->Z . ")";
 	}

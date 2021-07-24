@@ -13,10 +13,18 @@ class MyPlotPlotEvent extends Event {
 		$this->plot = $plot;
 	}
 
+	/**
+	 * @return Plot
+	 */
 	public function getPlot() : Plot {
 		return $this->plot;
 	}
 
+	/**
+	 * @param Plot $plot
+	 *
+	 * @return self
+	 */
 	public function setPlot(Plot $plot) : self {
 		$this->plot = $plot;
 		return $this;

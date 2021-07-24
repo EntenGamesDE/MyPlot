@@ -25,14 +25,23 @@ class MyPlotPvpEvent extends MyPlotPlotEvent implements Cancellable {
 		parent::__construct($plot);
 	}
 
+	/**
+	 * @return Player
+	 */
 	public function getAttacker() : Player {
 		return $this->attacker;
 	}
 
+	/**
+	 * @return Player
+	 */
 	public function getDamaged() : Player {
 		return $this->damaged;
 	}
 
+	/**
+	 * @return EntityDamageByEntityEvent|null
+	 */
 	public function getEvent() : ?EntityDamageByEntityEvent {
 		return $this->event;
 	}

@@ -17,10 +17,18 @@ class MyPlotSettingEvent extends MyPlotPlotEvent implements Cancellable {
 		parent::__construct($newPlot);
 	}
 
+	/**
+	 * @return Plot
+	 */
 	public function getOldPlot() : Plot {
 		return $this->oldPlot;
 	}
 
+	/**
+	 * @param Plot $oldPlot
+	 *
+	 * @return self
+	 */
 	public function setOldPlot(Plot $oldPlot) : self {
 		$this->oldPlot = $oldPlot;
 		return $this;

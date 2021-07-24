@@ -19,10 +19,16 @@ abstract class SimpleMyPlotForm extends MenuForm implements MyPlotForm {
 		);
 	}
 
+	/**
+	 * @param Plot|null $plot
+	 */
 	public function setPlot(?Plot $plot) : void {
 		$this->plot = $plot;
 	}
 
+	/**
+	 * @return Plot|null
+	 */
 	public function getPlot() : ?Plot {
 		return $this->plot;
 	}

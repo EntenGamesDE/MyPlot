@@ -9,6 +9,11 @@ use pocketmine\utils\TextFormat;
 
 class AutoSubCommand extends SubCommand
 {
+	/**
+	 * @param CommandSender $sender
+	 *
+	 * @return bool
+	 */
 	public function canUse(CommandSender $sender) : bool {
 		return ($sender instanceof Player) and $sender->hasPermission("myplot.command.auto");
 	}
@@ -30,7 +35,7 @@ class AutoSubCommand extends SubCommand
 				$sender->sendMessage($this->translateString("auto.success", [$plot->X, $plot->Z]));
 				$cmd = new ClaimSubCommand($this->getPlugin(), "claim");
 				if(isset($args[0]) and strtolower($args[0]) == "true" and $cmd->canUse($sender)) {
-					$cmd->execute($sender, isset($args[1]) ? [$args[1]] : []);
+					$cmd->execute($sender, [$args[1] ?? null]);
 				}
 			}else {
 				$sender->sendMessage(TextFormat::RED . $this->translateString("error"));

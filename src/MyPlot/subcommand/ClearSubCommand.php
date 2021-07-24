@@ -9,6 +9,11 @@ use pocketmine\utils\TextFormat;
 
 class ClearSubCommand extends SubCommand
 {
+	/**
+	 * @param CommandSender $sender
+	 *
+	 * @return bool
+	 */
 	public function canUse(CommandSender $sender) : bool {
 		return ($sender instanceof Player) and $sender->hasPermission("myplot.command.clear");
 	}
@@ -36,9 +41,8 @@ class ClearSubCommand extends SubCommand
 				$sender->sendMessage(TextFormat::RED . $this->translateString("clear.nomoney"));
 				return true;
 			}
-			$maxBlocksPerTick = $this->getPlugin()->getConfig()->get("ClearBlocksPerTick", 256);
-			if(!is_int($maxBlocksPerTick))
-				$maxBlocksPerTick = 256;
+			/** @var int $maxBlocksPerTick */
+			$maxBlocksPerTick = (int) $this->getPlugin()->getConfig()->get("ClearBlocksPerTick", 256);
 			if($this->getPlugin()->clearPlot($plot, $maxBlocksPerTick)) {
 				$sender->sendMessage($this->translateString("clear.success"));
 			}else{

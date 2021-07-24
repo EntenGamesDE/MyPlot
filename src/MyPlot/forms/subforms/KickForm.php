@@ -17,10 +17,7 @@ class KickForm extends ComplexMyPlotForm {
 		$plugin = MyPlot::getInstance();
 		$players = [];
 		foreach($plugin->getServer()->getOnlinePlayers() as $player) {
-			$plot = $plugin->getPlotByPosition($player->getPosition());
-			if($plot === null)
-				continue;
-			if($this->plot !== null and !$plot->isSame($this->plot))
+			if(isset($this->plot) and !$plugin->getPlotByPosition($player)->isSame($this->plot))
 				continue;
 			$players[] = $player->getDisplayName();
 			$this->players[] = $player->getName();
