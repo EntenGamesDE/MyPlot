@@ -8,15 +8,11 @@ use MyPlot\Plot;
 use pocketmine\command\CommandSender;
 use pocketmine\player\OfflinePlayer;
 use pocketmine\player\Player;
+use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 
 class UnDenySubCommand extends SubCommand
 {
-	/**
-	 * @param CommandSender $sender
-	 *
-	 * @return bool
-	 */
 	public function canUse(CommandSender $sender) : bool {
 		return ($sender instanceof Player) and $sender->hasPermission("myplot.command.undenyplayer");
 	}
@@ -28,7 +24,7 @@ class UnDenySubCommand extends SubCommand
 	 * @return bool
 	 */
 	public function execute(CommandSender $sender, array $args) : bool {
-		if(empty($args)) {
+		if(count($args) === 0) {
 			return false;
 		}
 		$dplayerName = $args[0];
@@ -41,9 +37,9 @@ class UnDenySubCommand extends SubCommand
 			$sender->sendMessage(TextFormat::RED . $this->translateString("notowner"));
 			return true;
 		}
-		$dplayer = $this->getPlugin()->getServer()->getPlayer($dplayerName);
+		$dplayer = $this->getPlugin()->getServer()->getPlayerByPrefix($dplayerName);
 		if($dplayer === null)
-			$dplayer = new OfflinePlayer($this->getPlugin()->getServer(), $dplayerName);
+			$dplayer = new OfflinePlayer($dplayerName, Server::getInstance()->getOfflinePlayerData($dplayerName));
 		if($this->getPlugin()->removePlotDenied($plot, $dplayer->getName())) {
 			$sender->sendMessage($this->translateString("undenyplayer.success1", [$dplayer->getName()]));
 			if($dplayer instanceof Player) {
@@ -56,7 +52,7 @@ class UnDenySubCommand extends SubCommand
 	}
 
 	public function getForm(?Player $player = null) : ?MyPlotForm {
-		if($this->getPlugin()->getPlotByPosition($player->getPosition()) instanceof Plot)
+		if($player !== null and $this->getPlugin()->getPlotByPosition($player->getPosition()) instanceof Plot)
 			return new UndenyPlayerForm();
 		return null;
 	}

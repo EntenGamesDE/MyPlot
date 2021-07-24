@@ -64,25 +64,28 @@ class GenerateForm extends ComplexMyPlotForm {
 				$data = $copy;
 
 				$world = array_shift($data);
-				if($player->getServer()->getWorldManager()->isWorldGenerated($world)) {
+				if($player->getServer()->getWorldManager()->isWorldLoaded($world)) {
 					$player->sendMessage(TextFormat::RED . $plugin->getLanguage()->translateString("generate.exists", [$world]));
 					return;
 				}
 				$teleport = array_pop($data);
-				$data = array_map(function($val) {
-					if(!is_string($val))
-						return $val;
+
+				$blockIds = array_slice($data, -5, 5, true);
+				$blockIds = array_map(function($val) {
 					if(strpos($val, ':') !== false) {
-						$pieces = explode(':', $val);
-						if(defined(BlockLegacyIds::class."::".strtoupper(str_replace(' ', '_', $pieces[0]))))
-							return constant(BlockLegacyIds::class."::".strtoupper(str_replace(' ', '_', $val))).':'.($pieces[1] ?? 0);
+						$peices = explode(':', $val);
+						if(defined(BlockLegacyIds::class."::".strtoupper(str_replace(' ', '_', $peices[0]))))
+							return constant(BlockLegacyIds::class."::".strtoupper(str_replace(' ', '_', $val))).':'.($peices[1] ?? 0);
 						return $val;
 					}elseif(is_numeric($val))
 						return $val.':0';
 					elseif(defined(BlockLegacyIds::class."::".strtoupper(str_replace(' ', '_', $val))))
 						return constant(BlockLegacyIds::class."::".strtoupper(str_replace(' ', '_', $val))).':0';
 					return $val;
-				}, $data);
+				}, $blockIds);
+				foreach($blockIds as $key => $val)
+					$data[$key] = $val;
+
 				if($plugin->generateLevel($world, array_shift($data), $data)) {
 					if($teleport)
 						$plugin->teleportPlayerToPlot($player, new Plot($world, 0, 0));

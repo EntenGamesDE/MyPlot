@@ -6,6 +6,7 @@ use MyPlot\MyPlot;
 use MyPlot\Plot;
 use pocketmine\block\Block;
 use pocketmine\block\VanillaBlocks;
+use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\scheduler\Task;
@@ -35,6 +36,8 @@ class ClearPlotTask extends Task {
 	protected $maxBlocksPerTick;
 	/** @var Vector3 $pos */
 	protected $pos;
+    /** @var AxisAlignedBB|null $plotBB */
+    protected $plotBB;
 
 	/**
 	 * ClearPlotTask constructor.
@@ -50,21 +53,35 @@ class ClearPlotTask extends Task {
 		$this->level = $this->plotBeginPos->getWorld();
 		$plotLevel = $plugin->getLevelSettings($plot->levelName);
 		$plotSize = $plotLevel->plotSize;
-		$this->xMax = (int)($this->plotBeginPos->x + $plotSize);
-		$this->zMax = (int)($this->plotBeginPos->z + $plotSize);
 		$this->height = $plotLevel->groundHeight;
 		$this->bottomBlock = $plotLevel->bottomBlock;
 		$this->plotFillBlock = $plotLevel->plotFillBlock;
 		$this->plotFloorBlock = $plotLevel->plotFloorBlock;
 		$this->maxBlocksPerTick = $maxBlocksPerTick;
-		$this->pos = new Vector3($this->plotBeginPos->x, 0, $this->plotBeginPos->z);
 		$this->plugin = $plugin;
+
+        $this->plotBeginPos = $plugin->getPlotPosition($plot, false);
+        $this->xMax = (int)($this->plotBeginPos->x + $plotSize);
+        $this->zMax = (int)($this->plotBeginPos->z + $plotSize);
+		foreach ($plugin->getProvider()->getMergedPlots($plot) as $mergedPlot){
+		    $xplot = $plugin->getPlotPosition($mergedPlot, false)->x;
+		    $zplot = $plugin->getPlotPosition($mergedPlot, false)->z;
+		    $xMaxPlot = (int)($xplot + $plotSize);
+		    $zMaxPlot = (int)($zplot + $plotSize);
+		    if($this->plotBeginPos->x > $xplot) $this->plotBeginPos->x = $xplot;
+		    if($this->plotBeginPos->z > $zplot) $this->plotBeginPos->z = $zplot;
+		    if($this->xMax < $xMaxPlot) $this->xMax = $xMaxPlot;
+		    if($this->zMax < $zMaxPlot) $this->zMax = $zMaxPlot;
+        }
+        $this->level = $this->plotBeginPos->getLevelNonNull();
+        $this->pos = new Vector3($this->plotBeginPos->x, 0, $this->plotBeginPos->z);
+        $this->plotBB = $this->plugin->getPlotBB($plot);
 		$plugin->getLogger()->debug("Plot Clear Task started at plot {$plot->X};{$plot->Z}");
 	}
 
 	public function onRun() : void {
 		foreach($this->level->getEntities() as $entity) {
-			if($this->plugin->getPlotBB($this->plot)->isVectorInXZ($entity->getPosition())) {
+			if($this->plotBB->isVectorInXZ($entity->getPosition())) {
 				if(!$entity instanceof Player) {
 					$entity->flagForDespawn();
 				}else{

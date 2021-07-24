@@ -10,11 +10,6 @@ use pocketmine\utils\TextFormat;
 
 class CloneSubCommand extends SubCommand
 {
-	/**
-	 * @param CommandSender $sender
-	 *
-	 * @return bool
-	 */
 	public function canUse(CommandSender $sender) : bool {
 		return ($sender instanceof Player) and $sender->hasPermission("myplot.command.clone");
 	}
@@ -26,7 +21,7 @@ class CloneSubCommand extends SubCommand
 	 * @return bool
 	 */
 	public function execute(CommandSender $sender, array $args) : bool {
-		if(empty($args)) {
+		if(count($args) === 0) {
 			return false;
 		}
 		/** @var string[] $plotIdArray */
@@ -65,6 +60,6 @@ class CloneSubCommand extends SubCommand
 	}
 
 	public function getForm(?Player $player = null) : ?MyPlotForm {
-		return new CloneForm($player);
+			return $player !== null ? new CloneForm($player) : null;
 	}
 }

@@ -12,12 +12,8 @@ use pocketmine\utils\TextFormat;
 
 class ClaimForm extends ComplexMyPlotForm {
 
-	/** @var Player $player */
-	private $player;
-
 	public function __construct(Player $player) {
 		$plugin = MyPlot::getInstance();
-		$this->player = $player;
 		$plot = $plugin->getPlotByPosition($player->getPosition());
 		if($plot === null) {
 			$plot = new \stdClass();
@@ -47,16 +43,16 @@ class ClaimForm extends ComplexMyPlotForm {
 				)
 			],
 			function(Player $player, CustomFormResponse $response) use ($plugin) : void {
-				if(is_numeric($response->getString("0")) and is_numeric($response->getString("1")))
+				if(is_numeric($response->getString("0")) and is_numeric($response->getString("1")) and $plugin->isLevelLoaded($response->getString("2")))
 					$data = MyPlot::getInstance()->getProvider()->getPlot(
-						empty($response->getString("2")) ? $this->player->getWorld()->getFolderName() : $response->getString("2"),
+						$response->getString("2") === '' ? $player->getWorld()->getFolderName() : $response->getString("2"),
 						(int)$response->getString("0"),
 						(int)$response->getString("1")
 					);
-				elseif(empty($response->getString("0")) or empty($response->getString("1"))) {
-					$plot = MyPlot::getInstance()->getPlotByPosition($this->player->getPosition());
+				elseif($response->getString("0") === '' or $response->getString("1") === '') {
+					$plot = MyPlot::getInstance()->getPlotByPosition($player->getPosition());
 					if($plot === null) {
-						$this->player->sendForm(new self($this->player));
+						$player->sendForm(new self($player));
 						throw new FormValidationException("Unexpected form data returned");
 					}
 					$data = $plot;
@@ -76,7 +72,7 @@ class ClaimForm extends ComplexMyPlotForm {
 				$plotsOfPlayer = 0;
 				foreach($plugin->getPlotLevels() as $level => $settings) {
 					$level = $plugin->getServer()->getWorldManager()->getWorldByName((string)$level);
-					if(!$level->isClosed()) {
+					if($level !== null and !$level->isClosed()) {
 						$plotsOfPlayer += count($plugin->getPlotsOfPlayer($player->getName(), $level->getFolderName()));
 					}
 				}
@@ -84,9 +80,8 @@ class ClaimForm extends ComplexMyPlotForm {
 					$player->sendMessage(TextFormat::RED . $plugin->getLanguage()->translateString("claim.maxplots", [$maxPlots]));
 					return;
 				}
-				$plotLevel = $plugin->getLevelSettings($data->levelName);
 				$economy = $plugin->getEconomyProvider();
-				if($economy !== null and !$economy->reduceMoney($player, $plotLevel->claimPrice)) {
+				if($economy !== null and !$economy->reduceMoney($player, $data->price)) {
 					$player->sendMessage(TextFormat::RED . $plugin->getLanguage()->translateString("claim.nomoney"));
 					return;
 				}

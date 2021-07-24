@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
 namespace MyPlot\forms\subforms;
 
 
@@ -35,23 +34,23 @@ class WarpForm extends ComplexMyPlotForm {
 					"2",
 					$plugin->getLanguage()->get("warp.formworld"),
 					"world",
-					$player->getWorld()->getFolderName()
+					$player->getLevelNonNull()->getFolderName()
 				)
 			],
 			function(Player $player, CustomFormResponse $response) use ($plugin) : void {
-				if(is_numeric($response->getString("0")) and is_numeric($response->getString("1")))
+				if(is_numeric($response->getString("0")) and is_numeric($response->getString("1")) and $plugin->isLevelLoaded($response->getString("2")))
 					$data =[
 						(int)$response->getString("0"),
 						(int)$response->getString("1"),
-						empty($response->getString("2")) ? $this->player->getWorld()->getFolderName() : $response->getString("2")
+						$response->getString("2") === '' ? $player->getLevelNonNull()->getFolderName() : $response->getString("2")
 					];
-				elseif(empty($response->getString("0")) and empty($response->getString("1"))) {
-					$this->player->sendForm(new self($this->player));
+				elseif($response->getString("0") === '' and $response->getString("1") === '') {
+					$player->sendForm(new self($player));
 					throw new FormValidationException("Invalid form data returned");
 				}else
 					throw new FormValidationException("Unexpected form data returned");
 
-				$player->getServer()->dispatchCommand($player, $plugin->getLanguage()->get("command.name")." ".$plugin->getLanguage()->get("warp.name")." ".((int)$response->getString("0")).";".((int)$response->getString("1")).' "'.(empty($response->getString("2")) ? $this->player->getWorld()->getFolderName() : $response->getString("2")).'"', true);
+				$player->getServer()->dispatchCommand($player, $plugin->getLanguage()->get("command.name")." ".$plugin->getLanguage()->get("warp.name")." $data[0];$data[1] $data[2]", true);
 			}
 		);
 	}
